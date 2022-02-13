@@ -10,10 +10,11 @@ function getAllDogs() {
 
 function putEachDogOnTable(obj) {
   const tableRow = document.createElement('tr')
+  tableRow.id = obj.id
   putInfoToTable(obj, tableRow)
 }
 
-function handleEditbutton(obj, tableObj) {
+function handleButtons(obj, table) {
   const dogForm = document.querySelector('#dog-form')
   dogForm.name.value = obj.name
   dogForm.breed.value = obj.breed
@@ -24,8 +25,20 @@ function handleEditbutton(obj, tableObj) {
     obj.name = e.target.name.value
     obj.breed = e.target.breed.value
     obj.sex = e.target.sex.value
-    putInfoToTable(obj, tableObj)
+    updateDogInfo(obj)
   })
+}
+
+function updateDogInfo(obj) {
+  fetch(`http://localhost:3000/dogs/${obj.id}`, {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(obj)
+  })
+  .then(res => res.json())
+  .then(obj => putInfoToTable(obj))
 }
 
 function putInfoToTable(dog, table) {
@@ -33,9 +46,25 @@ function putInfoToTable(dog, table) {
   <td>${dog.name}</td>
   <td>${dog.breed}</td>
   <td>${dog.sex}</td>
-  <td><button>Edit Dog</button></td>`
-  table.querySelector('button').addEventListener('click', () => {
-    handleEditbutton(dog, table)
+  <td><button id='edit'>Edit Dog</button></td>
+  <td><button id='delete'>Delete</button></td>`
+  table.querySelector('button#edit').addEventListener('click', () => {
+    handleButtons(dog, table)
+  })
+  table.querySelector('button#delete').addEventListener('click', () => {
+    table.innerHTML = ''
+    deleteDog(dog.id)
   })
   document.querySelector('tbody#table-body').appendChild(table)
+}
+
+function deleteDog(id) {
+  fetch(`http://localhost:3000/dogs/${id}`, {
+    method: 'DELETE',
+    headers: {
+      'Content-Type': 'application/json'
+    }
+  })
+  .then(res => res.json())
+  .then(dog => console.log(dog))
 }
